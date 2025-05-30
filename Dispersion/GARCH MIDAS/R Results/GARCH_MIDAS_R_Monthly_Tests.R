@@ -7,7 +7,8 @@ library(dccmidas)
 library(rumidas)
 install.packages('xts')
 library(xts)
-
+install.packages('purrr')
+library(purrr)
 install.packages('rumidas')
 library(rumidas)
 library(tools)
@@ -19,45 +20,76 @@ install.packages('pbapply')
 library(pbapply)
 #Read in data
 
+# Returns 
 
-US_indices_rets <- read.csv('C:/Users/Phillip/Desktop/Python/Python Notebooks (Mine)/Dispersion/GARCH MIDAS/US_Indices_2006_2025.csv')
-
-US_monthly_variables <- read.csv('C:/Users/Phillip/Desktop/Python/Python Notebooks (Mine)/Dispersion/GARCH MIDAS/Monthly.csv')
-
-sector_indices <- read.csv('C:/Users/Phillip/Desktop/Python/Python Notebooks (Mine)/Dispersion/GARCH MIDAS/Sector Returns 2006.csv')
-
-Quarterly <- read.csv('C:/Users/Phillip/Desktop/Python/Python Notebooks (Mine)/Dispersion/GARCH MIDAS/Quarterly.csv')
-
-Monthly <- read.csv('C:/Users/Phillip/Desktop/Python/Python Notebooks (Mine)/Dispersion/GARCH MIDAS/Monthly Variables v1.csv')
-
-                                 
-#Ensure data classes are correct (date)
-
-Quarterly <- Quarterly %>% 
-  mutate(Date = as.Date(Date))
-
-Monthly <- Monthly %>% 
-  mutate(Date = as.Date(Date))
+US_indices_rets <- read.csv('C:/Users/Phillip/Desktop/Python/Python Notebooks (Mine)/Dispersion/GARCH MIDAS/DCC MIDAS/Returns - Index - Major US Indices 2010-2025.csv')
 
 US_indices_rets <- US_indices_rets %>% 
   mutate(Date = as.Date(Date))
 
-US_monthly_variables <- US_monthly_variables %>% 
+US_sector_rets <- read.csv('C:/Users/Phillip/Desktop/Python/Python Notebooks (Mine)/Dispersion/GARCH MIDAS/DCC MIDAS/Returns - Index - US Sector Indices 2010-2025.csv')
+
+US_sector_rets <- US_sector_rets %>%
   mutate(Date = as.Date(Date))
 
-sector_indices <- sector_indices %>%
-  mutate(Date = as.Date(Date))
+EU_FinS_rets <- read.csv('C:/Users/Phillip/Desktop/Python/Python Notebooks (Mine)/Dispersion/GARCH MIDAS/DCC MIDAS/Returns - Index - Financials.csv')
+
+
+EU_RealEstate_rets <- read.csv('C:/Users/Phillip/Desktop/Python/Python Notebooks (Mine)/Dispersion/GARCH MIDAS/DCC MIDAS/Returns - Index - RealEstate.csv')
+
+
+# Indicators
+
+Indicator_Volatility <- read.csv('C:/Users/Phillip/Desktop/Python/Python Notebooks (Mine)/Dispersion/GARCH MIDAS/DCC MIDAS/Indicator - Volatility.csv')
+
+
+Indicator_Volatility <- Indicator_Volatility %>%
+  mutate(
+    Date = as.Date(paste0(Date, "-01"), format = "%Y-%m-%d")
+  )
+
+Indicator_Spread <- read.csv('C:/Users/Phillip/Desktop/Python/Python Notebooks (Mine)/Dispersion/GARCH MIDAS/DCC MIDAS/Indicator - Spread.csv')
+
+Indicator_Spread <- Indicator_Spread %>%
+  mutate(
+    Date = as.Date(paste0(Date, "-01"), format = "%Y-%m-%d")
+  )
+
+Indicator_Sentiment <- read.csv('C:/Users/Phillip/Desktop/Python/Python Notebooks (Mine)/Dispersion/GARCH MIDAS/DCC MIDAS/Indicator - Sentiment.csv')
+
+Indicator_Sentiment <- Indicator_Sentiment %>%
+  mutate(
+    Date = as.Date(paste0(Date, "-01"), format = "%Y-%m-%d")
+  )
+
+Indicator_Industrial <- read.csv('C:/Users/Phillip/Desktop/Python/Python Notebooks (Mine)/Dispersion/GARCH MIDAS/DCC MIDAS/Indicator - Industrial.csv')
+
+Indicator_Industrial <- Indicator_Industrial %>%
+  mutate(
+    Date = as.Date(paste0(Date, "-01"), format = "%Y-%m-%d")
+  )
+
+Indicator_Economic <- read.csv('C:/Users/Phillip/Desktop/Python/Python Notebooks (Mine)/Dispersion/GARCH MIDAS/DCC MIDAS/Indicator - Economic.csv')
+
+Indicator_Economic <- Indicator_Economic %>%
+  mutate(
+    Date = as.Date(paste0(Date,'-01'), format = "%Y-%m-%d"))
+
+
 
 #Convert to XTS
-Quarterly <- xts(Quarterly, order.by = Quarterly$Date)
-Monthly <- xts(Monthly, order.by = Monthly$Date)
+Indicator_Volatility <- xts(Indicator_Volatility, order.by = Indicator_Volatility$Date)
+Indicator_Sentiment <- xts(Indicator_Sentiment, order.by = Indicator_Sentiment$Date)
+Indicator_Economic <- xts(Indicator_Economic, order.by = Indicator_Economic$Date)
+Indicator_Industrial <- xts(Indicator_Industrial, order.by = Indicator_Industrial$Date)
+Indicator_Spread <- xts(Indicator_Spread, order.by = Indicator_Spread$Date)
+
 US_indices_rets <- xts(US_indices_rets, order.by = US_indices_rets$Date)
-sector_indices <- xts(sector_indices, order.by = sector_indices$Date)
-US_monthly_variables <- xts(US_monthly_variables, order.by = US_monthly_variables$Date)
+US_sector_rets <- xts(US_sector_rets, order.by = US_sector_rets$Date)
 
 # Combine Mixed Freq Data
 
-SP <- US_indices_rets$.SPX 
+rets_SP <- US_indices_rets$.SPX 
 rets_DJ <- US_indices_rets$.DJI
 rets_NASDAQ <- US_indices_rets$.IXIC
 rets_NASDAQ100 <- US_indices_rets$.NDX
@@ -76,12 +108,8 @@ rets_MidCap400 <- sector_indices$.MID
 rets_SmallCap600 <- sector_indices$.SPCY
 rets_VentureComposite <- sector_indices$.SPCDNX
 
-
-
-
 #storage mode loop
 
-storage.mode(SP) <- 'numeric'
 
 rets_names <- ls(pattern = "^rets_")
 
@@ -108,7 +136,206 @@ for (name in mv2_names) {
 }
 
 #Assign Macro Variables
-mv1 <- US_monthly_variables$GPR
+
+#Volatility - Monthly
+mv_vol_1 <- Indicator_Volatility$VIX
+mv_vol_2 <- Indicator_Volatility$Skew
+mv_vol_3 <- Indicator_Volatility$MOVE
+mv_vol_4 <- Indicator_Volatility$Oil.Vol
+mv_vol_5 <- Indicator_Volatility$VVIX
+mv_vol_6 <- Indicator_Volatility$EqVol
+
+mv_sent_1 <- Indicator_Sentiment$Overall.NFCI
+mv_sent_2 <- Indicator_Sentiment$Leverage
+mv_sent_3 <- Indicator_Sentiment$Risk
+mv_sent_4 <- Indicator_Sentiment$Credit
+mv_sent_5 <- Indicator_Sentiment$UMich
+mv_sent_6 <- Indicator_Sentiment$BKK.Leading.Index
+mv_sent_7 <- Indicator_Sentiment$CFNAI
+mv_sent_8 <- Indicator_Sentiment$St.Louis.Stress.Index
+mv_sent_9 <- Indicator_Sentiment$US.EPU
+mv_sent_10 <- Indicator_Sentiment$Global.GPR
+mv_sent_11 <- Indicator_Sentiment$USA.GPR
+mv_sent_12 <- Indicator_Sentiment$Saudi.GPR
+
+Indicator_Industrial <- read.csv('C:/Users/Phillip/Desktop/Python/Python Notebooks (Mine)/Dispersion/GARCH MIDAS/DCC MIDAS/Indicator - Industrial.csv')
+
+Indicator_Industrial <- Indicator_Industrial %>%
+  mutate(
+    Date = as.Date(paste0(Date, "-01"), format = "%Y-%m-%d")
+  )
+
+
+
+mv_industrial_1 <- Indicator_Industrial$Global.Supply.Chain.Pressure.Index
+mv_industrial_2 <- Indicator_Industrial$Industrial.Production
+mv_industrial_3 <- Indicator_Industrial$New.Orders
+mv_industrial_4 <- Indicator_Industrial$PPI
+mv_industrial_5 <- Indicator_Industrial$Industrial.Production..Manufacturing.Only.
+mv_industrial_6 <- Indicator_Industrial$Global.Price.of.Industrial.Materials
+
+midas_matrix_industrial <- map(
+  Industrial_Columns, 
+  ~ mv_into_mat(
+    x = rets_SP, 
+    mv = .x, 
+    K = 12,
+    type = 'monthly')
+)
+
+Indicator_Economic <- xts(Indicator_Economic[ , setdiff(names(Indicator_Economic), "Date")],
+                          order.by = Indicator_Economic$Date)
+
+mv_economic_1 <- Indicator_Economic$value
+mv_economic_2 <- Indicator_Economic$Unemployment.Rate
+mv_economic_3 <- Indicator_Economic$Inflation.Rate
+mv_economic_4 <- Indicator_Economic$Number.of.Car.Sales
+mv_economic_5 <- Indicator_Economic$Electricity.Price.CPI.in.US.Cities
+
+mv_spread_1 <- Indicator_Spread$T10.2.yield.curve..US.
+mv_spread_2 <- Indicator_Spread$T10.3.yield.curve..US.
+mv_spread_3 <- Indicator_Spread$Default.Spread..BofA.High.Yield.OAS.
+mv_spread_4 <- Indicator_Spread$Defaut.Spread..BofA.EU.High.Yield.
+
+midasv_vol_1 <- mv_into_mat(x = rets_SP, mv = mv_vol_1, K = 12, type = 'monthly')
+midasv_vol_2 <- mv_into_mat(x = rets_SP, mv = mv_vol_2, K = 12, type = 'monthly')
+midasv_vol_3 <- mv_into_mat(x = rets_SP, mv = mv_vol_3, K = 12, type = 'monthly')
+midasv_vol_4 <- mv_into_mat(x = rets_SP, mv = mv_vol_4, K = 12, type = 'monthly')
+midasv_vol_5 <- mv_into_mat(x = rets_SP, mv = mv_vol_5, K = 12, type = 'monthly')
+midasv_vol_6 <- mv_into_mat(x = rets_SP, mv = mv_vol_6, K = 12, type = 'monthly')
+
+midasv_sent_1 <- mv_into_mat(x = rets_SP, mv = mv_sent_1, K = 12, type = 'monthly')
+midasv_sent_2 <- mv_into_mat(x = rets_SP, mv = mv_sent_2, K = 12, type = 'monthly')
+midasv_sent_3 <- mv_into_mat(x = rets_SP, mv = mv_sent_3, K = 12, type = 'monthly')
+midasv_sent_4 <- mv_into_mat(x = rets_SP, mv = mv_sent_4, K = 12, type = 'monthly')
+midasv_sent_5 <- mv_into_mat(x = rets_SP, mv = mv_sent_5, K = 12, type = 'monthly')
+midasv_sent_6 <- mv_into_mat(x = rets_SP, mv = mv_sent_6, K = 12, type = 'monthly')
+midasv_sent_7 <- mv_into_mat(x = rets_SP, mv = mv_sent_7, K = 12, type = 'monthly')
+midasv_sent_8 <- mv_into_mat(x = rets_SP, mv = mv_sent_8, K = 12, type = 'monthly')
+midasv_sent_9 <- mv_into_mat(x = rets_SP, mv = mv_sent_9, K = 12, type = 'monthly')
+midasv_sent_10 <- mv_into_mat(x = rets_SP, mv = mv_sent_10, K = 12, type = 'monthly')
+midasv_sent_11 <- mv_into_mat(x = rets_SP, mv = mv_sent_11, K = 12, type = 'monthly')
+midasv_sent_12 <- mv_into_mat(x = rets_SP, mv = mv_sent_12, K = 12, type = 'monthly')
+
+Indicator_Volatility <- xts(Indicator_Volatility[ , setdiff(names(Indicator_Volatility), "Date")],
+               order.by = Indicator_Volatility$Date)
+
+Indicator_Sentiment <- xts(Indicator_Sentiment[ , setdiff(names(Indicator_Sentiment), "Date")],
+                order.by = Indicator_Sentiment$Date)
+
+Indicator_Industrial  <- xts(Indicator_Industrial[ , setdiff(names(Indicator_Industrial), "Date")],
+                order.by = Indicator_Industrial$Date)
+
+
+
+Indicator_Spread <- xts(Indicator_Spread[ , setdiff(names(Indicator_Spread), "Date")],
+                order.by = Indicator_Spread$Date)
+
+
+
+# Trying to use a for loop to create matrices for Ind, Economic and Spread Indicators
+
+Volatility_Columns <- list(
+  VIX    = mv_vol_1,
+  Skew   = mv_vol_2,
+  MOVE   = mv_vol_3,
+  OilVol = mv_vol_4,
+  VVIX   = mv_vol_5,
+  EqVol  = mv_vol_6
+)
+
+# Sentiment indicators
+Sentiment_Columns <- list(
+  NFCI       = mv_sent_1,
+  Leverage   = mv_sent_2,
+  Risk       = mv_sent_3,
+  Credit     = mv_sent_4,
+  UMich      = mv_sent_5,
+  BKKIndex   = mv_sent_6,
+  CFNAI      = mv_sent_7,
+  STLStress  = mv_sent_8,
+  US_EPU     = mv_sent_9,
+  GlobalGPR  = mv_sent_10,
+  USA_GPR    = mv_sent_11,
+  Saudi_GPR  = mv_sent_12
+)
+
+# Industrial indicators
+Industrial_Columns <- list(
+  GSCPI        = mv_industrial_1,  # Global Supply‐Chain Pressure Index
+  IndProd      = mv_industrial_2,  # Industrial Production
+  NewOrders    = mv_industrial_3,  # New Orders
+  PPI          = mv_industrial_4,  # Producer Price Index
+  IndProdMfg   = mv_industrial_5,  # Manufacturing‐only Prod.
+  MatPrices    = mv_industrial_6   # Price of Industrial Materials
+)
+
+# Economic indicators
+Economic_Columns <- list(
+  EconValue    = mv_economic_1,  # whichever “value” represents
+  UnempRate    = mv_economic_2,
+  InflRate     = mv_economic_3,
+  CarSales     = mv_economic_4,
+  ElecPriceCPI = mv_economic_5   # Electricity Price CPI
+)
+
+# Spread indicators
+Spread_Columns <- list(
+  T10_2YC   = mv_spread_1,  # 10–2yr yield curve US
+  T10_3YC   = mv_spread_2,  # 10–3yr yield curve US
+  HY_OAS    = mv_spread_3,  # High‐yield OAS (BofA)
+  EU_HY_OAS = mv_spread_4   # EU High‐yield OAS (BofA)
+)
+
+######### LOOP ##############
+
+midas_matrix_volatility <- map(
+  Volatility_Columns, 
+  ~ mv_into_mat(
+    x = rets_SP, 
+    mv = .x, 
+    K = 12,
+    type = 'monthly')
+)
+
+midas_matrix_sentiment <- map(
+  Sentiment_Columns, 
+  ~ mv_into_mat(
+    x = rets_SP, 
+    mv = .x, 
+    K = 12,
+    type = 'monthly')
+)
+
+midas_matrix_economic <- map(
+  Economic_Columns, 
+  ~ mv_into_mat(
+    x = rets_SP, 
+    mv = .x, 
+    K = 12,
+    type = 'monthly')
+)
+
+
+
+midas_matrix_spread <- map(
+  Spread_Columns, 
+  ~ mv_into_mat(
+    x = rets_SP, 
+    mv = .x, 
+    K = 12,
+    type = 'monthly')
+      )
+
+
+
+
+
+
+
+
+
+###
 mv2 <- US_monthly_variables$GEPU_current
 mv3 <- US_monthly_variables$New.Orders
 mv4 <- US_monthly_variables$UMich.Sentiment
@@ -264,7 +491,7 @@ MV_list_Q <- list(HousingStart = midasq1,
 
 #Setting up the for loop 
 
-K <- 4
+K <- 12
 
 fit_one <- function(mat) {
   
@@ -273,8 +500,8 @@ fit_one <- function(mat) {
       model = 'GM',
       skew = 'YES',
       distribution = 'norm',
-      daily_ret = rets_Healthcare,
-      mat, 
+      daily_ret = rets_NASDAQ,
+      midasv_vol_1, 
       K = K
     ),
     silent = FALSE
@@ -283,11 +510,39 @@ fit_one <- function(mat) {
 
 #Model List
 
-gm_models_HC <- pblapply(MV_list_Q, fit_one)
-
-names(gm_models_DJ) <- names(MV_list_Q)
 
 ################################################################################
+K < - 12
+
+
+
+gm_models_NASDAQ <- pblapply(Volatility_Indicator_, fit_NASDAQ)
+gm_models_NASDAQ100 <- pblapply(Volatility_Indicator_, fit_NASDAQ100)
+gm_models_SP1500 <- pblapply(Volatility_Indicator_, fit_SP1500)
+gm_models_Canada <- pblapply(Volatility_Indicator_, fit_Canada)
+gm_models_SP <- pblapply(Volatility_Indicator_, fit_SP)
+
+gm_models_NASDAQ_sent <- pblapply(Sentiment_Indicator_, fit_NASDAQ)
+gm_models_NASDAQ100_sent <- pblapply(Sentiment_Indicator_, fit_NASDAQ100)
+gm_models_SP1500_sent <- pblapply(Sentiment_Indicator_, fit_SP1500)
+gm_models_Canada_sent <- pblapply(Sentiment_Indicator_, fit_Canada)
+gm_models_SP_sent <- pblapply(Sentiment_Indicator_, fit_SP)
+
+sentiment_results <- list(NASDAQ = gm_models_NASDAQ_sent, 
+                          NASDAQ100 = gm_models_NASDAQ100_sent,
+                          SP1500 = gm_models_SP1500_sent,
+                          Canada = gm_models_Canada_sent,
+                          SP500 = gm_models_SP_sent
+                          )
+
+volatility_results <- list(NASDAQ = gm_models_NASDAQ, 
+                          NASDAQ100 = gm_models_NASDAQ100,
+                          SP1500 = gm_models_SP1500,
+                          Canada = gm_models_Canada,
+                          SP500 = gm_models_SP
+                          )
+
+
 
 fit_NASDAQ <- function(mat) {
   
@@ -300,7 +555,7 @@ fit_NASDAQ <- function(mat) {
       mat, 
       K = K
     ),
-    ,
+    
     error = identity
   )
 }
@@ -353,7 +608,6 @@ fit_SP1500 <- function(mat) {
   )
 }
 
-
 fit_SP <- function(mat) {
   
   tryCatch(
@@ -361,7 +615,7 @@ fit_SP <- function(mat) {
       model = 'GM',
       skew = 'YES',
       distribution = 'norm',
-      daily_ret = SP,
+      daily_ret = rets_SP,
       mat, 
       K = K
     ),
@@ -370,12 +624,69 @@ fit_SP <- function(mat) {
   )
 }
 
+fit_SP100 <- function(mat) {
+  
+  tryCatch(
+    ugmfit(
+      model = 'GM',
+      skew = 'YES',
+      distribution = 'norm',
+      daily_ret = rets_SP100,
+      mat,
+      K = K
+    ),
+    error = identity
+  )
+}
 
-gm_models_NASDAQ <- pblapply(MV_list_Q, fit_NASDAQ)
-gm_models_NASDAQ100 <- pblapply(MV_list_Q, fit_NASDAQ100)
-gm_models_SP1500 <- pblapply(MV_list_Q, fit_SP1500)
-gm_models_Canada <- pblapply(MV_list_Q, fit_Canada)
-gm_models_SP <- pblapply(MV_list_Q, fit_SP)
+################################################################################
+
+
+
+data <- data.frame()
+datalist <- data.frame()
+error_vars <- c()
+n <- 6
+
+for (name in names(volatility_results)) {
+  
+  
+  model <- volatility_results[[name]]
+  
+  
+  
+  for (v in 1:n) {
+    
+    tryCatch(
+    nm_var <- paste(name, names(Volatility_Indicator[v])), error = identity)
+    
+    tryCatch(variance_ratio <- var(log(model[[v]]$est_lr_in_s)) / var(log(model[[v]]$est_vol_in_s **2)) * 100, error = identity)
+    tryCatch(AIC <- model[[v]]$inf_criteria[[1]], error = identity)
+    tryCatch(BIC <- model[[v]]$inf_criteria[[2]], error = identity)
+    tryCatch(MSE <- model[[v]]$loss_in_s[[1]], error = identity)
+    tryCatch(QLike <- model[[v]]$loss_in_s[[2]], error = identity)
+    tryCatch(loglik <- model[[v]]$loglik, error = identity)
+    
+    model_diagnostics <- c(variance_ratio,QLike,MSE, AIC, BIC,loglik)
+    
+    
+    tryCatch(data <- data.frame(model[[v]]$rob_coef_mat, 
+                       c(nm_var, nm_var,nm_var,nm_var, nm_var, nm_var), 
+                       model_diagnostics), 
+             
+             error = function(e) {
+                         # record that this_name failed
+                         error_vars <<- c(error_vars, nm_var)
+                       })
+    
+
+    
+    tryCatch(datalist <- rbind(data, datalist), error = identity)
+    
+  }
+}
+
+write.csv(datalist, 'C:/Users/Phillip/Desktop/Python/Python Notebooks (Mine)/Dispersion/GARCH MIDAS/DCC MIDAS/Results - Volatility - US Indices v1.csv')
 
 
 indices_list <- list(rets_NASDAQ, rets_NASDAQ100, rets_SP1500, rets_Canada)
@@ -419,7 +730,7 @@ for (i in indices_list) {
 gm_sum <- lapply(gm_models_Q2, summary)
 names(gm_sum) <- names(MV_list_Q2)
 
-
+sent_results <- pblapply(sentiment_results, extract_items)
 
 extract_items <- function(mod) {
   list(
@@ -433,10 +744,5 @@ extract_items <- function(mod) {
     loglikelihood = mod$loglik)
 }
 
-extracts <- lapply(gm_models_DJ, extract_items)
-names(extracts) <- names(gm_models_DJ)
-
-saveRDS(extracts,file = 'DJ_Quarterly_MidasRegression.RDS')
-
-xas <- readRDS('SP_Quarterly_MidasRegression_pt1.RDS')
-xas <- readRDS('SP_Quarterly_MidasRegression_pt2.RDS')
+Sentiment_Indicator_
+sentiment_results[1]

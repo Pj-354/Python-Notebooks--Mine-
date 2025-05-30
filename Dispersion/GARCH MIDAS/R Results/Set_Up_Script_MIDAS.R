@@ -218,6 +218,10 @@ midas_matrix_economic <- map(
 
 US_sector_rets <- read.csv('C:/Users/Phillip/Desktop/Python/Python Notebooks (Mine)/Dispersion/GARCH MIDAS/DCC MIDAS/Returns - Index - US Sector Indices 2010-2025.csv')
 
+# Run this if MIDAS on Realized Vol
+Realized_Vol_US <- read.csv('C:/Users/Phillip/Desktop/Python/Python Notebooks (Mine)/Dispersion/GARCH MIDAS/DCC MIDAS/Realized Volatility - Major US Indices.csv')
+sector_indices <- read.csv('C:/Users/Phillip/Desktop/Python/Python Notebooks (Mine)/Dispersion/GARCH MIDAS/DCC MIDAS/Returns - Index - RV - Major US Indices.csv')
+
 US_sector_rets <- US_sector_rets %>%
   mutate(Date = as.Date(Date))
 
@@ -236,6 +240,11 @@ rets_VentureComposite <- sector_indices$.SPCDNX
 
 # US RETURNS
 US_indices_rets <- read.csv('C:/Users/Phillip/Desktop/Python/Python Notebooks (Mine)/Dispersion/GARCH MIDAS/DCC MIDAS/Returns - Index - Major US Indices 2010-2025.csv')
+
+# Run this if MIDAS on Realized Vol
+
+Realized_Vol_Sector <- Realized_Vol_US <- read.csv('C:/Users/Phillip/Desktop/Python/Python Notebooks (Mine)/Dispersion/GARCH MIDAS/DCC MIDAS/Realized Volatility - Sector Indices.csv')
+US_indices_rets <- read.csv('C:/Users/Phillip/Desktop/Python/Python Notebooks (Mine)/Dispersion/GARCH MIDAS/DCC MIDAS/Returns - Index - RV - US Sectors.csv')
 
 US_indices_rets <- US_indices_rets %>% 
   mutate(Date = as.Date(Date))

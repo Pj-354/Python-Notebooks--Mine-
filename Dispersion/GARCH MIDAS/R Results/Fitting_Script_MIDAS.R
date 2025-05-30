@@ -196,13 +196,12 @@ fit_SP100 <- function(mat) {
 ################################################################################
 
 
-
 data <- data.frame()
 datalist <- data.frame()
 error_vars <- c()
 
 
-n <- 4
+n <- 5
 # Vol : n = 6
 # Econ : n = 5
 # Industrial : n = 6
@@ -211,10 +210,11 @@ n <- 4
 
 nm_var
 
-for (name in names(spread_results)) {
+# Change 2 things => names(...) and model <- ...[[name]]
+for (name in names(econ_results)) {
   
   
-  model <- spread_results[[name]]
+  model <- econ_results[[name]]
   
   
   
@@ -249,6 +249,6 @@ for (name in names(spread_results)) {
   }
 }
 
-write.csv(datalist, 'C:/Users/Phillip/Desktop/Python/Python Notebooks (Mine)/Dispersion/GARCH MIDAS/DCC MIDAS/Results - Spread - US Indices v1.csv')
+write.csv(datalist, 'C:/Users/Phillip/Desktop/Python/Python Notebooks (Mine)/Dispersion/GARCH MIDAS/DCC MIDAS/Results - Economic - US Indices v1.csv')
 
 

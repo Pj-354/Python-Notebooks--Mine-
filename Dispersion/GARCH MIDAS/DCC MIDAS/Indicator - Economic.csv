@@ -1,4 +1,4 @@
-Date,value,Unemployment Rate,Inflation Rate,Number of Car Sales,Electricity Price CPI in US Cities
+Date,Housing Starts,Unemployment Rate,Inflation Rate,Number of Car Sales,Electricity Price CPI in US Cities
 2008-01,0,5.0,0,0,0
 2008-02,53.0,4.9,-0.1200000000000001,-0.2140000000000004,0.10300000000000864
 2008-03,-118.0,5.1,0.06999999999999984,-0.3769999999999989,1.1310000000000002

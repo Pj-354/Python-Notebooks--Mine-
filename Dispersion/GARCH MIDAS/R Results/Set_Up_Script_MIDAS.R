@@ -21,9 +21,8 @@ library(pbapply)
 
 
 ################################# VOLATILITY ###################################
-
 Indicator_Volatility <- read.csv(
-  'C:/Users/Phillip/Desktop/Python/Python Notebooks (Mine)/Dispersion/GARCH MIDAS/DCC MIDAS/Indicator - Volatility.csv'
+  '/Users/phillip/Python/Python-Notebooks--Mine--1/Python-Notebooks--Mine-/Dispersion/GARCH MIDAS/DCC MIDAS/Indicator - Volatility.csv'
 )
 Indicator_Volatility <- Indicator_Volatility %>%
   mutate(Date = as.Date(paste0(Date, "-01"), format = "%Y-%m-%d"))
@@ -50,13 +49,13 @@ Volatility_Columns <- list(
 
 midas_matrix_volatility <- map(
   Volatility_Columns,
-  ~ mv_into_mat(x = rets_SP, mv = .x, K = 12, type = 'monthly')
+  ~ mv_into_mat(x = rets_Financial, mv = .x, K = 12, type = 'monthly')
 )
 
 ################################# SPREAD #######################################
 
 Indicator_Spread <- read.csv(
-  'C:/Users/Phillip/Desktop/Python/Python Notebooks (Mine)/Dispersion/GARCH MIDAS/DCC MIDAS/Indicator - Spread.csv'
+  '/Users/phillip/Python/Python-Notebooks--Mine--1/Python-Notebooks--Mine-/Dispersion/GARCH MIDAS/DCC MIDAS/Indicator - Spread.csv'
 )
 Indicator_Spread <- Indicator_Spread %>%
   mutate(Date = as.Date(paste0(Date, "-01"), format = "%Y-%m-%d"))
@@ -79,13 +78,13 @@ Spread_Columns <- list(
 
 midas_matrix_spread <- map(
   Spread_Columns,
-  ~ mv_into_mat(x = rets_SP, mv = .x, K = 12, type = 'monthly')
+  ~ mv_into_mat(x = rets_ConsumerDisc, mv = .x, K = 12, type = 'monthly')
 )
 
 ################################# Sentiment ###################################
 
 Indicator_Sentiment <- read.csv(
-  'C:/Users/Phillip/Desktop/Python/Python Notebooks (Mine)/Dispersion/GARCH MIDAS/DCC MIDAS/Indicator - Sentiment.csv'
+  '/Users/phillip/Python/Python-Notebooks--Mine--1/Python-Notebooks--Mine-/Dispersion/GARCH MIDAS/DCC MIDAS/Indicator - Sentiment.csv'
 )
 Indicator_Sentiment <- Indicator_Sentiment %>%
   mutate(Date = as.Date(paste0(Date, "-01"), format = "%Y-%m-%d"))
@@ -115,7 +114,7 @@ mv_sent_18 <- Indicator_Sentiment$GER.Sustainability.Index
 mv_sent_19 <- Indicator_Sentiment$China.Sustainability.Index
 mv_sent_20 <- Indicator_Sentiment$.CESICNY
 mv_sent_21 <- Indicator_Sentiment$.CESIEUR
-mv_sent_21 <- Indicator_Sentiment$.CESIGL
+mv_sent_22 <- Indicator_Sentiment$.CESIGL
 
 
 
@@ -140,7 +139,8 @@ Sentiment_Columns <- list(
   GER_Sust     = mv_sent_18,  # GER.Sustainability.Index
   China_Sust   = mv_sent_19,  # China.Sustainability.Index
   CESICNY      = mv_sent_20,  # .CESICNY
-  CESIGL       = mv_sent_21)  # .CESIGL
+  CESIEUR       = mv_sent_21,
+  CESIGL  = mv_sent_22)  # .CESIGL
 
 midas_matrix_sentiment <- map(
   Sentiment_Columns,
@@ -150,7 +150,7 @@ midas_matrix_sentiment <- map(
 ################################# INDUSTRIAL ###################################
 
 Indicator_Industrial <- read.csv(
-  'C:/Users/Phillip/Desktop/Python/Python Notebooks (Mine)/Dispersion/GARCH MIDAS/DCC MIDAS/Indicator - Industrial.csv'
+  '/Users/phillip/Python/Python-Notebooks--Mine--1/Python-Notebooks--Mine-/Dispersion/GARCH MIDAS/DCC MIDAS/Indicator - Industrial.csv'
 )
 Indicator_Industrial <- Indicator_Industrial %>%
   mutate(Date = as.Date(paste0(Date, "-01"), format = "%Y-%m-%d"))
@@ -177,13 +177,13 @@ Industrial_Columns <- list(
 
 midas_matrix_industrial <- map(
   Industrial_Columns,
-  ~ mv_into_mat(x = rets_SP, mv = .x, K = 12, type = 'monthly')
+  ~ mv_into_mat(x = rets_ConsumerDisc, mv = .x, K = 12, type = 'monthly')
 )
 
 ################################# ECONOMIC #####################################
 
 Indicator_Economic <- read.csv(
-  'C:/Users/Phillip/Desktop/Python/Python Notebooks (Mine)/Dispersion/GARCH MIDAS/DCC MIDAS/Indicator - Economic.csv'
+  '/Users/phillip/Python/Python-Notebooks--Mine--1/Python-Notebooks--Mine-/Dispersion/GARCH MIDAS/DCC MIDAS/Indicator - Economic.csv'
 )
 Indicator_Economic <- Indicator_Economic %>%
   mutate(Date = as.Date(paste0(Date, "-01"), format = "%Y-%m-%d"))
@@ -208,7 +208,7 @@ Economic_Columns <- list(
 
 midas_matrix_economic <- map(
   Economic_Columns,
-  ~ mv_into_mat(x = rets_SP, mv = .x, K = 12, type = 'monthly')
+  ~ mv_into_mat(x = rets_ConsumerDisc, mv = .x, K = 12, type = 'monthly')
 )
 
 
@@ -216,16 +216,16 @@ midas_matrix_economic <- map(
 
 # SECTOR RETURNS
 
-US_sector_rets <- read.csv('C:/Users/Phillip/Desktop/Python/Python Notebooks (Mine)/Dispersion/GARCH MIDAS/DCC MIDAS/Returns - Index - US Sector Indices 2010-2025.csv')
+sector_indices <- read.csv('/Users/phillip/Python/Python-Notebooks--Mine--1/Python-Notebooks--Mine-/Dispersion/GARCH MIDAS/DCC MIDAS/Returns - Index - US Sector Indices 2010-2025.csv')
 
 # Run this if MIDAS on Realized Vol
 Realized_Vol_US <- read.csv('C:/Users/Phillip/Desktop/Python/Python Notebooks (Mine)/Dispersion/GARCH MIDAS/DCC MIDAS/Realized Volatility - Major US Indices.csv')
 sector_indices <- read.csv('C:/Users/Phillip/Desktop/Python/Python Notebooks (Mine)/Dispersion/GARCH MIDAS/DCC MIDAS/Returns - Index - RV - Major US Indices.csv')
 
-US_sector_rets <- US_sector_rets %>%
+sector_indices <- sector_indices %>%
   mutate(Date = as.Date(Date))
 
-US_sector_rets  <- xts(US_sector_rets,  order.by = US_sector_rets$Date)
+sector_indices  <- xts(sector_indices,  order.by = sector_indices$Date)
 
 rets_ConsumerDisc     <- sector_indices$X.5SP25
 rets_Financial        <- sector_indices$X.5SP40
@@ -239,7 +239,7 @@ rets_SmallCap600      <- sector_indices$.SPCY
 rets_VentureComposite <- sector_indices$.SPCDNX
 
 # US RETURNS
-US_indices_rets <- read.csv('C:/Users/Phillip/Desktop/Python/Python Notebooks (Mine)/Dispersion/GARCH MIDAS/DCC MIDAS/Returns - Index - Major US Indices 2010-2025.csv')
+US_indices_rets <- read.csv('/Users/phillip/Python/Python-Notebooks--Mine--1/Python-Notebooks--Mine-/Dispersion/GARCH MIDAS/DCC MIDAS/Returns - Index - Major US Indices 2010-2025.csv')
 
 # Run this if MIDAS on Realized Vol
 
